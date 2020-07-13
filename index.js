@@ -1,58 +1,62 @@
-const refs = {
-  startBtn: document.querySelector('button[data-action-start]'),
-  stopBtn: document.querySelector('button[data-action-stop]'),
-  days: document.querySelector('span[data-value="days"]'),
-  hours: document.querySelector('span[data-value="hours"]'),
-  mins: document.querySelector('span[data-value="mins"]'),
-  secs: document.querySelector('span[data-value="secs"]'),
-};
+class CountdownTimer {
+  constructor({ selector, targetDate, interval = null, isActive = false }) {
+    this._refs = this._getRefs(selector);
+    this._targetDate = targetDate;
+    this._interval = interval;
+    this._isActive = isActive;
+    this._bindEvents();
+  }
+  _getRefs(root) {
+    const refs = {};
+    refs.startBtn = document.querySelector(`${root} [data-action-start]`);
+    refs.stopBtn = document.querySelector(`${root} [data-action-stop]`);
+    refs.days = document.querySelector(`${root} [data-value="days"]`);
+    refs.hours = document.querySelector(`${root} [data-value="hours"]`);
+    refs.mins = document.querySelector(`${root} [data-value="mins"]`);
+    refs.secs = document.querySelector(`${root} [data-value="secs"]`);
+    return refs;
+  }
 
-// new CountdownTimer({
-//   selector: '#timer-1',
-//   targetDate: new Date('Jul 31, 2020'),
-// });
-
-// console.log(CountdownTimer.targetDate);
-const timer = {
-  intervald: null,
-  isActive: false,
-
-  start() {
+  _bindEvents() {
+    this._refs.startBtn.addEventListener('click', this._start.bind(this));
+    this._refs.stopBtn.addEventListener('click', this._stop.bind(this));
+  }
+  _start() {
     if (this.isActive) {
       return;
     }
-    this.isActive = true;
-    const startTime = new Date('Jul 31, 2020');
-    this.intervald = setInterval(() => {
+    this._isActive = true;
+    const startTime = this._targetDate;
+    this._interval = setInterval(() => {
       const currentTime = Date.now();
       const deltaTime = startTime - currentTime;
-      updateClockface(deltaTime);
+      this._updateClockface(deltaTime);
     }, 1000);
-  },
-  stop() {
-    clearInterval(this.intervald);
-    this.intervald = null;
-    this.isActive = false;
-  },
-};
-// timer.start();
+  }
+  _stop() {
+    clearInterval(this._interval);
+    this._interval = null;
+    this._isActive = false;
+  }
+  _updateClockface(time) {
+    const days = this.pad(Math.floor(time / (1000 * 60 * 60 * 24)));
+    const hours = this.pad(
+      Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    );
+    const mins = this.pad(Math.floor((time % (1000 * 60 * 60)) / (1000 * 60)));
+    const secs = this.pad(Math.floor((time % (1000 * 60)) / 1000));
 
-refs.startBtn.addEventListener('click', timer.start.bind(timer));
-refs.stopBtn.addEventListener('click', timer.stop.bind(timer));
-
-function updateClockface(time) {
-  const days = pad(Math.floor(time / (1000 * 60 * 60 * 24)));
-  const hours = pad(
-    Math.floor((time % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-  );
-  const mins = pad(Math.floor((time % (1000 * 60 * 60)) / (1000 * 60)));
-  const secs = pad(Math.floor((time % (1000 * 60)) / 1000));
-
-  refs.days.textContent = days;
-  refs.hours.textContent = hours;
-  refs.mins.textContent = mins;
-  refs.secs.textContent = secs;
+    this._refs.days.textContent = days;
+    this._refs.hours.textContent = hours;
+    this._refs.mins.textContent = mins;
+    this._refs.secs.textContent = secs;
+  }
+  pad(value) {
+    return String(value).padStart(2, '0');
+  }
 }
-function pad(value) {
-  return String(value).padStart(2, '0');
-}
+
+const timer = new CountdownTimer({
+  selector: '#timer-1',
+  targetDate: new Date('2020, 08, 31'),
+});
